@@ -9,7 +9,7 @@ add_executable(browser_driver src/main.c src/browser_driver.c src/browser_driver
 include_directories(${browser_driver_SOURCE_DIR}/lib)
 set_property(TARGET browser_driver PROPERTY C_STANDARD 99)
 if (UNIX)
-	target_link_libraries (browser_driver m )
+	target_link_libraries (browser_driver m X11)
 endif()
 if (WIN32)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_CRT_SECURE_NO_WARNINGS")

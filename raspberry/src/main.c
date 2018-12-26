@@ -705,10 +705,11 @@ int main(int argc, char *argv[])
 			else if (strcmp(argv[i], "--rport") == 0)
 				port = argv[++i];
 
-		for (;;)
+		for (; ;)
 		{
-			browser_driver_loop(&browser_driver);
-
+			browser_driver_loop(&browser_driver) ;
+			if (browser_driver.stop)
+				break ;
 #ifdef HAVE_WATCHDOG
 		    if (watchdog_fd != 0)
         		write(watchdog_fd, "\0", 1);

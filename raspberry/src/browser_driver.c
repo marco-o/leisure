@@ -2,6 +2,10 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#ifdef HAVE_X
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
+#endif
 
 
 void browser_driver_message_handler(mqtt_client_t *client, const mqtt_text_t *topic, const mqtt_text_t *message) ;
@@ -79,6 +83,11 @@ int browser_driver_init(browser_driver_t *self, const char *config, const char *
 	memset(self, 0, sizeof(browser_driver_t));
 //	self->file = config;
 //	config_init(&self->config, browser_driver_load_config_prv(self));
+#ifdef HAVE_X
+        self->display = XOpenDisplay(NULL) ;
+        if (self->display == NULL)
+            mqtt_verbose_log(NULL, "Cannot open display\n");
+#endif
 	strncpy(self->hw_id, hw_id, MAX_NAME_LEN - 1);
 	return 0 ;
 }
@@ -141,9 +150,38 @@ void browser_driver_shut(browser_driver_t *self)
 		mqtt_client_shutdown(&temp->client);
 		free(temp);
 	}
+#ifdef HAVE_X
+        XCloseDisplay(self->display) ;
+#endif
 //	config_shut(&self->config);
 }
 
+int cJSON_GetNumber(cJSON *json, const char *field, int defval)
+{
+	if (json == NULL)
+		return defval;
+	cJSON *sub = cJSON_GetObjectItem(json, field);
+	if (sub == 0 || sub->type != cJSON_Number)
+		return defval;
+	return sub->valueint;
+}
+
+const char *cJSON_GetString(cJSON *json, const char *field, const char *defval)
+{
+	cJSON *sub = cJSON_GetObjectItem(json, field);
+	if (sub == 0 || sub->type != cJSON_String)
+		return defval;
+	return sub->valuestring;
+}
+
+void browser_driver_mouse(browser_driver_t *self, mqtt_client_t *client, cJSON *json)
+{
+    int x = cJSON_GetNumber(json, "x", 0) ;
+    int y = cJSON_GetNumber(json, "y", 0) ;
+    Window root = DefaultRootWindow(self->display);
+    XWarpPointer(self->display, None, root, 0, 0, 0, 0, x, y) ;
+    mqtt_verbose_log(client, "Pointer moved to %d, %d\n", x, y) ;
+}
 
 void browser_driver_message_handler(mqtt_client_t *client, const mqtt_text_t *topic, const mqtt_text_t *message)
 {
@@ -152,12 +190,16 @@ void browser_driver_message_handler(mqtt_client_t *client, const mqtt_text_t *to
 
 	mqtt_verbose_log(client, "Message: topic = %.*s\n", topic->length, topic->text) ;
 	if (json == 0)
-		return;
+		return ;
 
 	char *topic_tail = (char *)topic->text; // get leaf topic
 	for (char *iter = topic_tail; *iter; ++iter)
 		if (*iter == '/')
 			topic_tail = iter + 1;
+	if (strncmp(topic_tail, "mouse", 5) == 0) 
+            browser_driver_mouse(self, client, json) ;
+        else if (strncmp(topic_tail, "exit", 4) == 0) 
+            self->stop = 1  ;
 #if 0
 	if (strncmp(topic_tail, "stop", 4) == 0) // stop scene
 	{

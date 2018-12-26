@@ -11,6 +11,8 @@
 
 #define MAX_NAME_LEN 64
 
+#define HAVE_X
+
 
 typedef struct browser_driver_s browser_driver_t ;
 typedef struct mqtt_client_item_s mqtt_client_item_t;
@@ -29,8 +31,12 @@ struct mqtt_client_item_s
 
 struct browser_driver_s
 {
+	char               stop ; 
 	mqtt_client_item_t *clients;
 	//config_t            config;
+#ifdef HAVE_X
+        void                *display ;
+#endif
 	char                hw_id[MAX_NAME_LEN];
 }  ;
 
