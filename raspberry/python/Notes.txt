@@ -7,3 +7,13 @@ pip install Display
 pip install Xlib
 
 pip install paho-mqtt
+
+Some extra throughts:
+Probably this way is much easier to go, especially once we use an HTTP interface. 
+So tasks(s) are:
+1. Set up discovery  (avahi)
+2. Use the web interface to drive the browser.
+   Nice to have: a unified function for that tasks + MQTT & HTTP backend
+3. An app that issues HTTP (MQTT?) commnds to the 'hidden' server. Nice to have: some
+   kind of encryption/token to keep malicious out
+   
