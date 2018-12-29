@@ -1,0 +1,9 @@
+Notes about doing the wok the pyton way
+
+Prerequisites:
+
+pip install pyautogui
+pip install Display
+pip install Xlib
+
+pip install paho-mqtt
